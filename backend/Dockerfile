@@ -1,9 +1,12 @@
-FROM node:18-alpine
+FROM node:18-bullseye-slim
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install deps (including dev deps for Prisma during build/runtime)
+# Install required native dependencies for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+# Install deps (including Prisma runtime dependencies)
 COPY backend/package*.json ./
 RUN npm install --no-audit --no-fund
 
