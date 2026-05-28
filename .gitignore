@@ -23,4 +23,15 @@ yarn-error.log*
 
 # GitHub Actions caches and artifacts
 .github/**/node_modules/
-/.parcel-cache
+.parcel-cache
+
+# Next.js
+.next/
+
+# Build
+dist/
+build/
+
+# Coverage
+coverage/
+
