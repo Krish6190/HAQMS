@@ -4,15 +4,13 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # Install deps (including dev deps for Prisma during build/runtime)
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm install --no-audit --no-fund
 
 # Copy source
-COPY prisma ./prisma
-COPY src ./src
-COPY .env ./
-COPY prisma/schema.prisma ./prisma/schema.prisma
-COPY run.sh ./run.sh
+COPY backend/prisma ./prisma
+COPY backend/src ./src
+COPY backend/run.sh ./run.sh
 
 RUN chmod +x /usr/src/app/run.sh
 
