@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   Users, CalendarDays, Activity, Search, Sparkles, UserPlus, 
   Trash2, ClipboardList, TrendingUp, DollarSign, Award, Clock,
@@ -11,15 +12,15 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, token, API_BASE_URL, logout } = useAuth();
+  const { user, token, API_BASE_URL, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Navigation Guard
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [authLoading, user, router]);
 
   // Global State
   const [activeTab, setActiveTab] = useState(
@@ -103,10 +104,11 @@ export default function Dashboard() {
 
   // Trigger Patient List Fetch (Every keystroke trigger re-renders parent! - Performance bug)
   useEffect(() => {
+    if (!user || !token) return;
     if (user.role === 'RECEPTIONIST' || user.role === 'ADMIN') {
       fetchPatients(1);
     }
-  }, [patientSearch, patientGender]);
+  }, [patientSearch, patientGender, user, token]);
 
   // Fetch Doctors for booking drop-down
   const fetchDoctorsDropdown = async () => {
@@ -122,8 +124,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    if (!user || !token) return;
     fetchDoctorsDropdown();
-  }, []);
+  }, [user, token]);
 
   // Handle Patient Registration
   const handleRegisterPatient = async (e) => {
@@ -210,7 +213,7 @@ export default function Dashboard() {
       if (res.ok) {
         setBookingMessage('Success: Appointment booked successfully!');
         setBookingReason('');
-        if (user.role === 'DOCTOR') fetchDoctorWorklist();
+        if (user?.role === 'DOCTOR') fetchDoctorWorklist();
       } else {
         setBookingMessage(`Error: ${data.error || 'Failed to book'}`);
       }
@@ -260,7 +263,7 @@ export default function Dashboard() {
         } else {
           setCheckinMessage(`Checked in! Generated Token #${data.token.tokenNumber}`);
         }
-        if (user.role === 'DOCTOR') fetchDoctorWorklist();
+        if (user?.role === 'DOCTOR') fetchDoctorWorklist();
       } else {
         if (res.status === 409 && data.requiresReassign) {
           const confirmed = confirm(
@@ -287,7 +290,7 @@ export default function Dashboard() {
   // DOCTOR WORKFLOW FUNCTIONS
   // ==========================================
   const fetchDoctorWorklist = async () => {
-    if (user.role !== 'DOCTOR') return;
+    if (!user || user.role !== 'DOCTOR') return;
     try {
       // Find matching doctor from doctors dropdown using user ID link
       const matchedDoc = doctorsList.find(d => d.userId === user.id);
@@ -315,10 +318,11 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (user.role === 'DOCTOR' && doctorsList.length > 0) {
+    if (!user || !token || user.role !== 'DOCTOR') return;
+    if (doctorsList.length > 0) {
       fetchDoctorWorklist();
     }
-  }, [doctorsList]);
+  }, [doctorsList, user, token]);
 
   // Update token status (WAITING -> CALLING -> COMPLETED / SKIPPED)
   const handleUpdateQueueStatus = async (tokenId, newStatus) => {
@@ -398,7 +402,7 @@ export default function Dashboard() {
     }
   };
 
-  if (!user) return null;
+  if (authLoading || !user) return null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -890,6 +894,7 @@ export default function Dashboard() {
                                 <button
                                   onClick={() => {
                                     const matchedDoc = doctorsList.find(d => d.userId === user.id);
+                                    if (!matchedDoc) return;
                                     handleQueueCheckin(app.patientId, matchedDoc.id, app.id);
                                   }}
                                   disabled={checkinLoading}
