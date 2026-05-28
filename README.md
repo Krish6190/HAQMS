@@ -4,6 +4,7 @@ Welcome to **HAQMS (Hospital Appointment & Queue Management System)**. This is a
 
 Candidates are tasked with auditing the codebase to identify, debug, profile, secure, and optimize performance bottlenecks, memory leaks, concurrency issues, and security vulnerabilities.
 
+> **Note**: For local running, use commit `481649dc9b9aeb8ad8a8f5c9d5ec57cf5ade680e` or ensure your local environment includes the `authLoading` variable to prevent crashes.
 ---
 
 ## 🛠️ Tech Stack
